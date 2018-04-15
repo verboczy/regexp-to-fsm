@@ -18,8 +18,10 @@ int main()
    // Node n1{};
    // Node n2{};
 
+   std::list<char> chars = { 'a', 'b', 'c', 'd', 'e' };
+
     Edge e{};
-    Edge e2{n1, n2};
+    Edge e2{n1, n2, chars};
     Edge e3 = e;
     e = e2;
     Edge e4 = std::move(e3);

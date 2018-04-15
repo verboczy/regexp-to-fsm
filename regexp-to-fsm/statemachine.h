@@ -18,7 +18,9 @@ public:
 
     ~StateMachine();
 
-    bool add_state(Node node, std::list<Edge> edges);
+    void add_state(Node node, std::list<Edge> edges);
+
+    bool check(std::string expression);
 
 private:
     std::map<Node, std::list<Edge>> states;

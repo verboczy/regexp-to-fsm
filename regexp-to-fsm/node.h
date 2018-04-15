@@ -18,6 +18,8 @@ public:
     void set_as_init();
     void set_as_final();
 
+    bool operator< (Node const& rhs) const;
+
 private:
     //std::list<Edge> edges;
     bool is_init;
