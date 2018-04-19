@@ -7,6 +7,27 @@ using namespace std;
 
 int main()
 {
+    Node node{true, true};
+
+    std::list<char> chars = { 'a' };
+    Edge edge{node, node, chars};
+    std::list<Edge> edges = { edge };
+    std::cout << "edge size " << edges.size() << std::endl;
+
+    StateMachine statemachine;
+    statemachine.add_state(node, edges);
+    statemachine.print_elements();
+
+    std::string user_input;
+    std::cin >> user_input;
+
+    while (user_input != "exit") {
+        bool result = statemachine.check(user_input);
+        std::cout << user_input << " is " << result << std::endl;
+        std::cin >> user_input;
+    }
+
+    /*
     StateMachine sm{};
     StateMachine sm2 = sm;
     StateMachine sm3 = std::move(sm);
@@ -31,6 +52,7 @@ int main()
 //    Node node{};
     std::list<Edge> edges;
     sm.add_state(node, edges);
+    */
 
     return 0;
 }

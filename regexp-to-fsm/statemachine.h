@@ -22,8 +22,14 @@ public:
 
     bool check(std::string expression);
 
+    void print_elements();
+
+    std::list<Edge> get_edges_by_node(Node const node);
+
 private:
     std::map<Node, std::list<Edge>> states;
+
+    Node get_initial();
 };
 
 #endif

@@ -52,3 +52,11 @@ Edge& Edge::operator=(Edge && rhs) {
 Edge::~Edge() {
     std::cout << "Destructor - E" << std::endl;
 }
+
+Node Edge::get_end_node() const {
+    return end_node;
+}
+
+std::list<char> Edge::get_label_chars() const {
+    return label_chars;
+}
