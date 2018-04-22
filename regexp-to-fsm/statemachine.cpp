@@ -64,9 +64,9 @@ Node StateMachine::get_initial() {
 
     for (auto iter = states.begin(); iter != states.end(); iter++) {
         if (iter->first.get_is_init()) {
-            std::cout << "INITIAL FOUND" << std::endl;
+           // std::cout << "INITIAL FOUND" << std::endl;
             auto edges = states[iter->first];
-            std::cout << edges.size() << std::endl;
+            //std::cout << edges.size() << std::endl;
             return iter->first;
         }
     }
@@ -75,21 +75,14 @@ Node StateMachine::get_initial() {
     return init;
 }
 
-/*
-std::list<Edge> StateMachine::get_edges_by_node(Node const node) {
-    for (auto elem : states) {
-        if (node == elem.first) {
-            std::cout << "Found its edges" << std::endl;
-            return elem.second;
-        }
-    }
+void StateMachine::add_edge_to_list(Node node, Edge edge) {
+    ststates[node]
 }
-*/
 
 bool StateMachine::check(std::string expression) {
 
     Node initial_node = get_initial();
-    std::cout << initial_node.get_is_init() << std::endl;
+    //std::cout << initial_node.get_is_init() << std::endl;
 
     std::queue<std::pair<Node, std::string>> node_queue;
     node_queue.push(make_pair(initial_node, expression));
@@ -104,23 +97,23 @@ bool StateMachine::check(std::string expression) {
                 /// There are no character left and the state is accepting, so the word is good for the regular expression.
                 return true;
             }
-            std::cout << "STR IS EMPTY, BUT NOT FINAL" << std::endl;
+            //std::cout << "STR IS EMPTY, BUT NOT FINAL" << std::endl;
         }
         else {
-            std::cout << "STR IS NOT EMPTY" << std::endl;
+           // std::cout << "STR IS NOT EMPTY" << std::endl;
             /// get edges of the actual node
             auto edges = states[node];
-            std::cout << edges.size() << std::endl;
+           // std::cout << edges.size() << std::endl;
 
             /// check which edge can we take
             for (auto edge : edges) {
-                std::cout << "ITERATE OVER EDGES" << std::endl;
+                //std::cout << "ITERATE OVER EDGES" << std::endl;
                 auto chars = edge.get_label_chars();
                 for (auto character : chars) {
-                    std::cout << "ITERATE OVER CHARACTERS" << std::endl;
+                   // std::cout << "ITERATE OVER CHARACTERS" << std::endl;
                     /// add the end nodes of the good edges
                     if (str[0] == character) {
-                        std::cout << "ADD NEW NODE TO THE QUEUE" << std::endl;
+                       // std::cout << "ADD NEW NODE TO THE QUEUE" << std::endl;
                         Node next_node = edge.get_end_node();
                         std::string new_string = str;
                         new_string.erase(0, 1);

@@ -24,7 +24,8 @@ public:
 
     void print_elements();
 
-    std::list<Edge> get_edges_by_node(Node const node);
+    void add_edge_to_list(Node node, Edge edge);
+
 
 private:
     std::map<Node, std::list<Edge>> states;
