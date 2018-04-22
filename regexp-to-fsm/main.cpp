@@ -318,10 +318,35 @@ StateMachine buildStateMachine(std::string expression) {
         init_node.set_as_final();
     }
 
-    for (int i = 0; i < expression.length(); i++) {
+    Node previous_node = init_node;
+
+    for (size_t i = 0; i < expression.length(); i++) {
         if (expression[i] == '*' || expression[i] == '(' || expression[i] == ')') {
             continue; /// TODO, not quite sure about parenthesis
         }
+
+        std::list<char> character_list = { expression[i] };
+        std::list<Edge> edge_list;
+
+        if (i + 1 < expression.length() && expression[i + 1] == '*') {
+            /// Loop edge
+            Edge loop_edge{previous_node, previous_node, character_list};
+            edge_list.push_back(loop_edge);
+        }
+
+        Node next_node{false, false};
+        std::string subexpression = expression.substr(i + 1, expression.length() - i);
+        std::cout << "Subexpression: " << subexpression << std::endl;
+        if (is_node_final(subexpression)) {
+            next_node.set_as_final();
+        }
+
+        Edge edge{previous_node, next_node, character_list};
+        edge_list.push_back(edge);
+
+        sm.add_state(previous_node, edge_list);
+
+        previous_node = next_node;
     }
 
 
@@ -330,11 +355,33 @@ StateMachine buildStateMachine(std::string expression) {
 
 int main()
 {
+    //std::cout << "Is final? " << is_node_final("a") << std::endl;
+
+    std::map<int, char> mymap;
+    mymap.insert({1, 'a'});
+    char asd = mymap[1];
+    mymap[1] = asd + 1;
+    std::cout << mymap[1] << std::endl;
+
+    StateMachine sm = buildStateMachine("ab*a*");
+
+    std::string user_input;
+    std::cin >> user_input;
+
+    while (user_input != "exit") {
+        bool result = sm.check(user_input);
+        std::cout << user_input << " is " << result << std::endl;
+        std::cin >> user_input;
+    }
+
+    /*
     std::cout << "Is final? " << is_node_final("a*(bc)*d*") << std::endl;
 
     std::string cica = "cica";
     cica.insert(0, "kis");
     std::cout << cica << std::endl;
+    std::cout << cica.substr(1, cica.length() - 1) << std::endl;
+
 
     std::string e6 = plustostar("q*w*|d(c|(ab)*)+aaaabs+ac+(dc*a)+");
 
@@ -354,6 +401,7 @@ int main()
 
     //std::string expr = "(a(b|s))|b";
     //std::cout << expr.erase(4, 2) << std::endl;
+    */
 
     /*
     size_t pipe_position = expr.find('|');
