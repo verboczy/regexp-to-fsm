@@ -6,23 +6,6 @@
 
 using namespace std;
 
-
-
-
-std::list<std::string> resolveOR(std::string original, std::list<std::string> result_list) {
-
-    /// If no more | in the expression put the expression into the result and return
-    //if (NO MORE |) {
-
-    //}
-
-    /// Otherwise, create two new
-
-    //result_list =
-
-    return result_list;
-}
-
 /// a*
 void test1() {
     Node node{true, true};
@@ -294,8 +277,61 @@ std::unordered_set<std::string> nomoreor(std::string expression, std::unordered_
     return withoutor;
 }
 
+bool is_node_final(std::string expression) {
+    int paranthesis_count = 0;
+    for (size_t i = 0; i < expression.length(); i++) {
+        if (isalpha(expression[i]) && paranthesis_count == 0) {
+            if (i + 1 < expression.length() && expression[i + 1] == '*') {
+                /// Looks good at this point, but it is not know what comes after it.
+            }
+            else {
+                /// Last character was an alphabetic character or the next character is not *.
+                return false;
+            }
+        }
+        else if (expression[i] == '(') {
+            paranthesis_count++;
+        }
+        else if (expression[i] == ')') {
+            paranthesis_count--;
+            if (paranthesis_count == 0) {
+                if (i + 1 < expression.length() && expression[i + 1] == '*') {
+                    /// Looks good at this point, but it is not know what comes after it.
+                }
+                else {
+                    /// If ) is the last character or not a * is after it then it cannot be final.
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+StateMachine buildStateMachine(std::string expression) {
+
+    StateMachine sm;
+
+    Node init_node{true, false};
+    if (is_node_final(expression)) {
+        init_node.set_as_final();
+    }
+
+    for (int i = 0; i < expression.length(); i++) {
+        if (expression[i] == '*' || expression[i] == '(' || expression[i] == ')') {
+            continue; /// TODO, not quite sure about parenthesis
+        }
+    }
+
+
+    return sm;
+}
+
 int main()
 {
+    std::cout << "Is final? " << is_node_final("a*(bc)*d*") << std::endl;
+
     std::string cica = "cica";
     cica.insert(0, "kis");
     std::cout << cica << std::endl;
