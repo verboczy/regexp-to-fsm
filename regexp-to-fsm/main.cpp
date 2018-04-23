@@ -318,52 +318,83 @@ StateMachine buildStateMachine(std::string expression) {
         init_node.set_as_final();
     }
 
-    Node previous_node = init_node;
+    Node actual_node = init_node;
+    std::list<Node> node_list;
 
     for (size_t i = 0; i < expression.length(); i++) {
+        /// Skip non-alphabetic characters
         if (expression[i] == '*' || expression[i] == '(' || expression[i] == ')') {
-            continue; /// TODO, not quite sure about parenthesis
+            continue;
         }
 
+        /// Create character and edge list
         std::list<char> character_list = { expression[i] };
         std::list<Edge> edge_list;
 
-        if (i + 1 < expression.length() && expression[i + 1] == '*') {
-            /// Loop edge
-            Edge loop_edge{previous_node, previous_node, character_list};
-            edge_list.push_back(loop_edge);
+        /// Add edges from older nodes to the actual, possible because star means 0..*
+        for (Node node : node_list) {
+            //std::cout << "Node list visit: " << character_list.front() << std::endl;
+            Edge new_edge{node, actual_node, character_list};
+            sm.add_edge_to_list(node, new_edge);
         }
 
         Node next_node{false, false};
+        /// Set next node to final, if needed
         std::string subexpression = expression.substr(i + 1, expression.length() - i);
-        std::cout << "Subexpression: " << subexpression << std::endl;
+        std::cout << "(no more)Subexpression: " << subexpression << std::endl;
         if (is_node_final(subexpression)) {
             next_node.set_as_final();
         }
+        /// No more character after this
+        if (i + 1 >= expression.length()) {
+            Edge edge{actual_node, next_node, character_list};
+            edge_list.push_back(edge);
 
-        Edge edge{previous_node, next_node, character_list};
-        edge_list.push_back(edge);
+            sm.add_state(actual_node, edge_list);
 
-        sm.add_state(previous_node, edge_list);
+            Edge empty_edge;
+            std::list<Edge> empty_list = { empty_edge };
+            sm.add_state(next_node, empty_list);
+        }
+        /// There is at least one more character
+        /// Let's see if it is *
+        else if (expression[i + 1] == '*') {
+            /// Add a loop edge to the state machine
+            Edge loop_edge{actual_node, actual_node, character_list};
+            edge_list.push_back(loop_edge);
+            sm.add_state(actual_node, edge_list);
+            /// Store this node in the list, for edges coming from this, which cannot be seen now
+            node_list.push_back(actual_node);
+        }
+        /// or is it an alphabetic character?
+        else if (isalpha(expression[i + 1])) {
+            /// Add node, with edge to state machine
+            Edge edge{actual_node, next_node, character_list};
+            edge_list.push_back(edge);
+            sm.add_state(actual_node, edge_list);
+            /// Clear the node list
+            node_list.clear();
+        }
 
-        previous_node = next_node;
+        actual_node = next_node;
+
     }
-
 
     return sm;
 }
 
+
 int main()
 {
     //std::cout << "Is final? " << is_node_final("a") << std::endl;
-
+/*
     std::map<int, char> mymap;
     mymap.insert({1, 'a'});
     char asd = mymap[1];
     mymap[1] = asd + 1;
     std::cout << mymap[1] << std::endl;
-
-    StateMachine sm = buildStateMachine("ab*a*");
+*/
+    StateMachine sm = buildStateMachine("a*b*a*");
 
     std::string user_input;
     std::cin >> user_input;
