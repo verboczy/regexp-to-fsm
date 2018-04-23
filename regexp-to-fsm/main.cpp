@@ -309,6 +309,49 @@ bool is_node_final(std::string expression) {
     return true;
 }
 
+std::string nomoreunusesparenthesis(std::string expression) {
+    size_t search_start_position = 0;
+    size_t position;
+    while ((position = expression.find('(', search_start_position)) != std::string::npos) {
+        int parenthesis_count = 1;
+        size_t i = position + 1;
+        while (parenthesis_count != 0 && i < expression.length()) {
+            if (expression[i] == '(') {
+                parenthesis_count++;
+            }
+            else if (expression[i] == ')') {
+                parenthesis_count--;
+                if (parenthesis_count == 0) {
+                    /// (asd)* <-- this is not unused
+                    if (i + 1 < expression.length() && expression[i + 1] == '*') {
+                        /// a(a)* <-- this is unused, has to be deleted
+                        if (i - position == 2) {
+                            /// First delete unused )
+                            expression.erase(i, 1);
+                            /// Then delete unused (
+                            expression.erase(position, 1);
+                        }
+                        else {
+                            search_start_position++;
+                        }
+                    }
+                    /// (asd), (asd)asd <-- these are unused
+                    else {
+                        /// First delete unused )
+                        expression.erase(i, 1);
+                        /// Then delete unused (
+                        expression.erase(position, 1);
+                        /// Search start should remain the same place
+                    }
+                }
+            }
+            i++;
+        }
+    }
+
+    return expression;
+}
+
 StateMachine buildStateMachine(std::string expression) {
 
     StateMachine sm;
@@ -383,9 +426,33 @@ StateMachine buildStateMachine(std::string expression) {
     return sm;
 }
 
+void test_nomoreunusedparenthesis() {
+    std::string ex1 = "aaa";
+    ex1 = nomoreunusesparenthesis(ex1);
+    std::cout << ex1 << std::endl;
+    std::string ex2 = "(a)aa";
+    ex2 = nomoreunusesparenthesis(ex2);    std::cout << ex2 << std::endl;
+    std::string ex3 = "a(a)a";
+    ex3 = nomoreunusesparenthesis(ex3);
+    std::cout << ex3 << std::endl;
+    std::string ex4 = "aa(a)";
+    ex4 = nomoreunusesparenthesis(ex4);
+    std::cout << ex4 << std::endl;
+    std::string ex5 = "aa(((a)))";
+    ex5 = nomoreunusesparenthesis(ex5);
+    std::cout << ex5 << std::endl;
+    std::string ex6 = "((a)(((a)*)(a))*)*";
+    ex6 = nomoreunusesparenthesis(ex6);
+    std::cout << ex6 << std::endl;
+    std::string ex7 = "(a)*((a)a)*(a)";
+    ex7 = nomoreunusesparenthesis(ex7);
+    std::cout << ex7 << std::endl;
+}
+
 
 int main()
 {
+
     //std::cout << "Is final? " << is_node_final("a") << std::endl;
 /*
     std::map<int, char> mymap;
@@ -448,47 +515,5 @@ int main()
     std::cout << end_position << std::endl;
     std::cout << expr.erase(start_position, end_position) << std::endl;
     */
-
-
-    //test2();
-/*
-    StateMachine sm = createSM("abc");
-
-    std::string user_input;
-    std::cin >> user_input;
-
-    while (user_input != "exit") {
-        bool result = sm.check(user_input);
-        std::cout << user_input << " is " << result << std::endl;
-        std::cin >> user_input;
-    }
-
-
-    StateMachine sm{};
-    StateMachine sm2 = sm;
-    StateMachine sm3 = std::move(sm);
-    sm3 = sm2;
-    sm = std::move(sm2);
-
-    Node n1{false, false};
-    Node n2{true, false};
-   // Node n1{};
-   // Node n2{};
-
-   std::list<char> chars = { 'a', 'b', 'c', 'd', 'e' };
-
-    Edge e{};
-    Edge e2{n1, n2, chars};
-    Edge e3 = e;
-    e = e2;
-    Edge e4 = std::move(e3);
-    e2 = std::move(e);
-
-    Node node{false, false};
-//    Node node{};
-    std::list<Edge> edges;
-    sm.add_state(node, edges);
-    */
-
     return 0;
 }
