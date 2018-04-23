@@ -37,18 +37,22 @@ StateMachine& StateMachine::operator=(StateMachine && rhs) noexcept {
 }
 
 StateMachine::~StateMachine() {
-    std::cout << "Destructor - SM" << std::endl;
+    std::cout << "Destructor - SM, map size: " << states.size() << std::endl;
 }
 
 /// Add state to state machine, meaning a node and edges from it
 void StateMachine::add_state(Node node, std::list<Edge> edges) {
-    std::cout << "add_state" << std::endl;
+    std::cout << "add_state: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
     //std::pair<Node,std::list<Edge>>
     //auto a = make_pair(std::move(node), std::move(edges));
 
     //states.insert(make_pair(std::move(node), std::move(edges)));
     //states.insert(make_pair(node, edges));
+
+    //std::cout << "AAAAAAAAAAAAAAAAA: " << states.find(node).size() << std::endl;
+
     states.insert( {node, edges} );
+    std::cout << "add_state after: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
     //std::cout << edges.size() << " vs " << states[node].size() << std::endl;
 }
 
@@ -76,7 +80,9 @@ Node StateMachine::get_initial() {
 }
 
 void StateMachine::add_edge_to_list(Node node, Edge edge) {
-    ststates[node]
+    std::list<Edge> edge_list = states[node];
+    edge_list.push_back(edge);
+    states[node] = edge_list;
 }
 
 bool StateMachine::check(std::string expression) {
