@@ -26,6 +26,8 @@ public:
 
     void add_edge_to_list(Node node, Edge edge);
 
+    void print_statemachine();
+
 
 private:
     std::map<Node, std::list<Edge>> states;

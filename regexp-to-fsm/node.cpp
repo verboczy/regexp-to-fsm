@@ -10,12 +10,14 @@ Node::Node() {
     is_final = false;
     max_id++;
     id = max_id;
+    //std::cout << "new maxid: " << max_id << std::endl;
 }
 
 Node::Node(bool initial, bool fin): is_init{initial}, is_final{fin} {
     //std::cout << "Constructor - N" << std::endl;
     max_id++;
     id = max_id;
+    //std::cout << "new maxid: " << max_id << std::endl;
 }
 
 Node::Node(Node const& other) {

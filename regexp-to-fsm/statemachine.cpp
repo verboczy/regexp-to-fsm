@@ -133,3 +133,13 @@ bool StateMachine::check(std::string expression) {
     return false;
 }
 
+void StateMachine::print_statemachine() {
+    std::cout << "PRINT STATE MACHINE" << std::endl;
+    for (auto state : states) {
+        std::cout << "PRINT node: " << state.first.id << " is final: " << state.first.get_is_final() << std::endl;
+        for (auto edge : state.second) {
+            std::cout << "edge: " << edge.begin_node.id << " -> "<< edge.end_node.id << " char: " << edge.getfirstchar() << std::endl;
+            //std::cout << "node init: " << edge.begin_node.get_is_final() << " -> "<< edge.end_node.get_is_final() << std::endl;
+        }
+    }
+}

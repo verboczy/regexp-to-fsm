@@ -21,9 +21,10 @@ public:
     Node get_end_node() const;
     std::list<char> get_label_chars() const;
 
-private:
     Node begin_node;
     Node end_node;
+    char getfirstchar();
+private:
 
     std::list<char> label_chars;
 };

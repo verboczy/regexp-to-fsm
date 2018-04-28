@@ -60,3 +60,10 @@ Node Edge::get_end_node() const {
 std::list<char> Edge::get_label_chars() const {
     return label_chars;
 }
+
+char Edge::getfirstchar() {
+    for (auto chararcter : label_chars) {
+        return chararcter;
+    }
+    return '.';
+}

@@ -23,8 +23,8 @@ public:
 
     bool operator< (Node const& rhs) const;
 
-private:
     int id;
+private:
     static int max_id;
     //std::list<Edge> edges;
     bool is_init;
