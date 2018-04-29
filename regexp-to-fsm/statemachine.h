@@ -20,7 +20,7 @@ public:
 
     void add_state(Node node, std::list<Edge> edges);
 
-    bool check(std::string expression);
+    bool check(std::string expression) const;
 
     void print_elements();
 
@@ -28,11 +28,10 @@ public:
 
     void print_statemachine();
 
-
 private:
     std::map<Node, std::list<Edge>> states;
 
-    Node get_initial();
+    Node get_initial() const;
 };
 
 #endif

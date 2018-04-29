@@ -73,16 +73,11 @@ void test3() {
     std::list<char> chars2 = { 'b' };
     Edge edge1{node1, node1, chars1};
     Edge edge2{node1, node2, chars2};
-    std::list<Edge> edges1 = { edge1, edge2 };
+    std::list<Edge> edges1 = { edge1 };
 
     StateMachine stateMachine;
     stateMachine.add_state(node1, edges1);
-
-
-    std::list<Edge> edges2 = { edge2 };
-
-    stateMachine.add_state(node2, edges2);
-
+    stateMachine.add_edge_to_list(node1, edge2);
     std::string user_input;
     std::cin >> user_input;
 
@@ -91,6 +86,7 @@ void test3() {
         std::cout << user_input << " is " << result << std::endl;
         std::cin >> user_input;
     }
+    stateMachine.print_statemachine();
 }
 
 size_t get_end_of_scope(std::string str, size_t startposition) {
@@ -437,11 +433,16 @@ StateMachine buildStateMachine(std::string expression) {
             continue;
         }
 
+        bool node_list_has_element = !node_list.empty();
+
+        if (node_list_has_element && i + 1 >= expression.length()) {
+            actual_node.set_as_final();
+        }
+
         /// Create character and edge list
         std::list<char> character_list = { expression[i] };
         std::list<Edge> edge_list;
 
-        bool node_list_has_element = !node_list.empty();
 
         /// Add edges from older nodes to the actual, possible because star means 0..*
         for (Node node : node_list) {
@@ -482,11 +483,15 @@ StateMachine buildStateMachine(std::string expression) {
             if (node_list_has_element) {
                 /// This is the final node
                 actual_node.set_as_final();
+                std::cout << "asdasdasdasdasdasasadasdad" << std::endl;
+
                 Edge empty_edge;
                 std::list<Edge> empty_list = { empty_edge };
                 sm.add_state(actual_node, empty_list);
+
             }
             else {
+                std::cout << "ez is lefutna?" << std::endl;
                 /// Need a final node and edge to reach it
                 Node next_node{false, true};
                 Edge edge{actual_node, next_node, character_list};
@@ -496,6 +501,7 @@ StateMachine buildStateMachine(std::string expression) {
                 Edge empty_edge;
                 std::list<Edge> empty_list = { empty_edge };
                 sm.add_state(next_node, empty_list);
+
             }
 
 
@@ -759,6 +765,46 @@ void test_no_inner() {
         StateMachine sm = buildStateMachine(ex);
         std::cout << "State machine: " << ex << std::endl;
         std::string s1 = "";
+        std::cout << s1 << " exptected: 0, actual: " << sm.check(s1) << std::endl;
+        std::string s2 = "a";
+        std::cout << s2 << " exptected: 0, actual: " << sm.check(s2) << std::endl;
+        std::string s3 = "ab";
+        std::cout << s3 << " exptected: 0, actual: " << sm.check(s3) << std::endl;
+        std::string s4 = "abc";
+        std::cout << s4 << " exptected: 1, actual: " << sm.check(s4) << std::endl;
+        std::string s5 = "abb";
+        std::cout << s5 << " exptected: 0, actual: " << sm.check(s5) << std::endl;
+        std::string s6 = "ba";
+        std::cout << s6 << " exptected: 0, actual: " << sm.check(s6) << std::endl;
+        std::string s7 = "abba";
+        std::cout << s7 << " exptected: 0, actual: " << sm.check(s7) << std::endl;
+        std::string s8 = "abbbbbbbbbbbbbbbbbbbbbbb";
+        std::cout << s8 << " exptected: 0, actual: " << sm.check(s8) << std::endl;
+        std::string s9 = "b";
+        std::cout << s9 << " exptected: 0, actual: " << sm.check(s9) << std::endl;
+        std::string s10 = "bb";
+        std::cout << s10 << " exptected: 0, actual: " << sm.check(s10) << std::endl;
+        std::string s11 = "aaaaaaaaaaaaaaaaaaaaaaaaab";
+        std::cout << s11 << " exptected: 0, actual: " << sm.check(s11) << std::endl;
+        std::string s12 = "aaaaaaaaaaaaaaaaaaaaaaaaabcccccccccccccccccccc";
+        std::cout << s12 << " exptected: 0, actual: " << sm.check(s12) << std::endl;
+        std::string s13 = "c";
+        std::cout << s13 << " exptected: 1, actual: " << sm.check(s13) << std::endl;
+        std::string s14 = "cb";
+        std::cout << s14 << " exptected: 0, actual: " << sm.check(s14) << std::endl;
+        std::string s15 = "bc";
+        std::cout << s15 << " exptected: 1, actual: " << sm.check(s15) << std::endl;
+        std::string s16 = "ac";
+        std::cout << s16 << " exptected: 1, actual: " << sm.check(s16) << std::endl;
+        std::string s17 = "aaaaaaaaaaaaaaaaaaaaaaaaabc";
+        std::cout << s17 << " exptected: 1, actual: " << sm.check(s17) << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+    }
+    {
+        std::string ex = "a*b*c*";
+        StateMachine sm = buildStateMachine(ex);
+        std::cout << "State machine: " << ex << std::endl;
+        std::string s1 = "";
         std::cout << s1 << " exptected: 1, actual: " << sm.check(s1) << std::endl;
         std::string s2 = "a";
         std::cout << s2 << " exptected: 1, actual: " << sm.check(s2) << std::endl;
@@ -796,7 +842,19 @@ void test_no_inner() {
 
 int main()
 {
-    std::string cica = "cica";
+    /*
+    std::map<int, int> asd;
+    asd[1] = 21;
+    asd[2] = 32;
+    auto sear = asd.find(3);
+    if (sear != asd.end()) {
+        std::cout << "found " << sear->first << " " << sear->second << std::endl;
+    }
+    else {
+        std::cout << "not found" << std::endl;
+    }
+    */
+    //std::string cica = "cica";
     //std::cout << "subcica: " << cica.substr(cica.length(), 1);
     /*
     test_nomoreunusedparenthesis();
@@ -805,8 +863,8 @@ int main()
     */
     //test_inner_expression();
     //test_simple_inner_expression();
-    //test_no_inner();
-    test2();
+    test_no_inner();
+    //test3();
 
     //std::cout << get_end_of_scope("aa(bc(bd))", 5) << std::endl;
 

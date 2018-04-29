@@ -9,11 +9,11 @@ StateMachine::StateMachine() {
 }
 
 StateMachine::StateMachine(StateMachine const& other) {
-    std::cout << "Copy ctor - SM" << std::endl;
+    //std::cout << "Copy ctor - SM" << std::endl;
     states = other.states;
 }
 StateMachine& StateMachine::operator=(StateMachine const& rhs) {
-    std::cout << "Copy = - SM" << std::endl;
+    //std::cout << "Copy = - SM" << std::endl;
 
     if (this != &rhs) {
         states = rhs.states;
@@ -23,11 +23,11 @@ StateMachine& StateMachine::operator=(StateMachine const& rhs) {
 }
 
 StateMachine::StateMachine(StateMachine && other) noexcept {
-    std::cout << "Move ctor - SM" << std::endl;
+    //std::cout << "Move ctor - SM" << std::endl;
     states = std::move_if_noexcept(other.states);
 }
 StateMachine& StateMachine::operator=(StateMachine && rhs) noexcept {
-    std::cout << "Move = - SM" << std::endl;
+    //std::cout << "Move = - SM" << std::endl;
 
     if (this != &rhs) {
         states = std::move_if_noexcept(rhs.states);
@@ -37,12 +37,13 @@ StateMachine& StateMachine::operator=(StateMachine && rhs) noexcept {
 }
 
 StateMachine::~StateMachine() {
-    std::cout << "Destructor - SM, map size: " << states.size() << std::endl;
+   // std::cout << "Destructor - SM, map size: " << states.size() << std::endl;
 }
 
 /// Add state to state machine, meaning a node and edges from it
 void StateMachine::add_state(Node node, std::list<Edge> edges) {
-    std::cout << "add_state: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
+    //std::cout << "add_state: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
+
     //std::pair<Node,std::list<Edge>>
     //auto a = make_pair(std::move(node), std::move(edges));
 
@@ -52,7 +53,7 @@ void StateMachine::add_state(Node node, std::list<Edge> edges) {
     //std::cout << "AAAAAAAAAAAAAAAAA: " << states.find(node).size() << std::endl;
 
     states.insert( {node, edges} );
-    std::cout << "add_state after: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
+    //std::cout << "add_state after: " << edges.front().get_label_chars().front() << " map size: " << states.size() << std::endl;
     //std::cout << edges.size() << " vs " << states[node].size() << std::endl;
 }
 
@@ -64,12 +65,12 @@ void StateMachine::print_elements() {
 
 /// Returns the initial node
 /// There is exactly one initial node is in each state machine
-Node StateMachine::get_initial() {
+Node StateMachine::get_initial() const {
 
     for (auto iter = states.begin(); iter != states.end(); iter++) {
         if (iter->first.get_is_init()) {
            // std::cout << "INITIAL FOUND" << std::endl;
-            auto edges = states[iter->first];
+            //auto edges = states.find(iter->first); //states[iter->first];
             //std::cout << edges.size() << std::endl;
             return iter->first;
         }
@@ -80,14 +81,17 @@ Node StateMachine::get_initial() {
 }
 
 void StateMachine::add_edge_to_list(Node node, Edge edge) {
+    //std::cout << " map size: " << states.size() << std::endl;
     std::list<Edge> edge_list = states[node];
+    //std::cout << "is list empty? " << edge_list.empty() << " nodeid: " << node.id << std::endl;
     edge_list.push_back(edge);
     states[node] = edge_list;
+    //std::cout << " map size: " << states.size() << std::endl;
 }
 
-bool StateMachine::check(std::string expression) {
-
+bool StateMachine::check(std::string expression) const {
     Node initial_node = get_initial();
+
     //std::cout << initial_node.get_is_init() << std::endl;
 
     std::queue<std::pair<Node, std::string>> node_queue;
@@ -108,11 +112,16 @@ bool StateMachine::check(std::string expression) {
         else {
            // std::cout << "STR IS NOT EMPTY" << std::endl;
             /// get edges of the actual node
-            auto edges = states[node];
+            //std::cout << " map size: " << states.size() << std::endl;
+            auto edges = states.find(node); /// states[node]; /// ez mositja a mapet
+            //std::cout << " map size: " << states.size() << std::endl;
            // std::cout << edges.size() << std::endl;
+           if (edges == states.end()) {
+                continue;
+           }
 
             /// check which edge can we take
-            for (auto edge : edges) {
+            for (auto edge : edges->second) {
                 //std::cout << "ITERATE OVER EDGES" << std::endl;
                 auto chars = edge.get_label_chars();
                 for (auto character : chars) {
@@ -129,7 +138,6 @@ bool StateMachine::check(std::string expression) {
             }
         }
     }
-
     return false;
 }
 
