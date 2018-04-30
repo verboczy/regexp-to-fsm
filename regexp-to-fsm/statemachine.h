@@ -5,6 +5,8 @@
 
 #include "edge.h"
 
+extern char epsilon;
+
 class StateMachine {
 public:
 
@@ -27,6 +29,8 @@ public:
     void add_edge_to_list(Node node, Edge edge);
 
     void print_statemachine();
+
+    bool contains_node(Node node);
 
 private:
     std::map<Node, std::list<Edge>> states;

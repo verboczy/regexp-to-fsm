@@ -4,6 +4,8 @@
 
 #include "statemachine.h"
 
+char epsilon = '@';
+
 StateMachine::StateMachine() {
     std::cout << "Default constructor - SM" << std::endl;
 }
@@ -126,7 +128,7 @@ bool StateMachine::check(std::string expression) const {
                 char character = edge.get_label_char();
                // std::cout << "ITERATE OVER CHARACTERS" << std::endl;
                 /// add the end nodes of the good edges
-                if (str[0] == character) {
+                if (str[0] == character) { //|| epsilon == character) {
                    // std::cout << "ADD NEW NODE TO THE QUEUE" << std::endl;
                     Node next_node = edge.get_end_node();
                     std::string new_string = str;
@@ -139,10 +141,14 @@ bool StateMachine::check(std::string expression) const {
     return false;
 }
 
+bool StateMachine::contains_node(Node node) {
+    return states.find(node) != states.end();
+}
+
 void StateMachine::print_statemachine() {
     std::cout << "PRINT STATE MACHINE" << std::endl;
     for (auto state : states) {
-        std::cout << "PRINT node: " << state.first.id << " is final: " << state.first.get_is_final() << std::endl;
+        std::cout << "PRINT node: " << state.first.id << " is init: " << state.first.get_is_init() << " is final: " << state.first.get_is_final() << std::endl;
         for (auto edge : state.second) {
             std::cout << "edge: " << edge.begin_node.id << " -> "<< edge.end_node.id << " char: " << edge.get_label_char() << std::endl;
             //std::cout << "node init: " << edge.begin_node.get_is_final() << " -> "<< edge.end_node.get_is_final() << std::endl;

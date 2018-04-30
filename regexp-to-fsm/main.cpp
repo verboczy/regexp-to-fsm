@@ -27,6 +27,7 @@ void test1() {
         std::cout << user_input << " is " << result << std::endl;
         std::cin >> user_input;
     }
+    statemachine.print_statemachine();
 }
 
 /// ab*a
@@ -88,6 +89,249 @@ void test3() {
     }
     stateMachine.print_statemachine();
 }
+
+/*
+void buildSubStateMachine_old(StateMachine& sm, Node actual_node, Node first_node,
+                          std::string expression, size_t start_index, size_t end_index) {
+    /// None of the sub state machine's node can be final
+    /// If it seems like it is final, then it must have an edge to the first node
+    //Node first_node = actual_node;
+    start_index++;
+
+    /// Here, only the substring is needed: e.g. a(ab(ac)*b)* --> ab(ac)*b
+    std::string subexpression = expression.substr(start_index , end_index - start_index - 1);
+    std::cout << "subSM " << subexpression << std::endl;
+    std::list<Node> node_list;
+    for (size_t i = 0; i < subexpression.length(); i++) {
+        std::cout << "i: " << i << std::endl;
+        if (subexpression[i] == '*') {
+            continue;
+        }
+
+        /// Create character and edge list
+        char character = subexpression[i];
+        std::list<Edge> edge_list;
+
+        /// Add edges from older nodes to the actual, possible because star means 0..*
+        for (Node node : node_list) {
+            Edge new_edge{node, actual_node, character};
+            sm.add_edge_to_list(node, new_edge);
+        }
+
+        Node next_node{false, false};
+        std::string subsubexpression = subexpression.substr(i,subexpression.length() - i); //was i+1
+
+        /// recursive call, for embedded expressions
+        if (subexpression[i] == '(') {
+            std::cout << "sub(" << std::endl;
+            size_t start_index = i;
+            size_t end_index = get_end_of_scope(subexpression, start_index);
+            buildSubStateMachine(sm, actual_node, first_node, subexpression, start_index, end_index);
+
+
+            /// Push actual to node_list - because it must have a star at the end
+            node_list.push_back(actual_node);
+            /// Set i to end_index
+            i = end_index;
+            /// Set actual to next
+            actual_node = next_node;
+            Edge empty_edge;
+            edge_list.push_back(empty_edge);
+            std::cout << "returned from sub, still in sub" << std::endl;
+        }
+        /// no more character after this
+        else if (i + 1 >= subexpression.length()) {
+            std::cout << "sub-nomore" << std::endl;
+            /// edge back to first node
+            Edge edge{actual_node, first_node, character};
+            edge_list.push_back(edge);
+        }
+        /// next character is *
+        else if (subexpression[i+1] == '*') {
+            std::cout << "sub*" << std::endl;
+            /// If final, edge back to first node
+            if (back_edge_needed(subsubexpression)) {
+                Edge edge{actual_node, first_node, character};
+                edge_list.push_back(edge);
+            }
+            /// Add a loop edge to the state machine
+            Edge loop_edge{actual_node, actual_node, character};
+            edge_list.push_back(loop_edge);
+            /// Store this node in the list, for edges coming from this, which cannot be seen now
+            node_list.push_back(actual_node);
+
+        }
+        /// next character is alphabetic
+        else {//if (isalpha(subexpression[i + 1])) {
+            std::cout << "sub else: " << subsubexpression << " is final: " << back_edge_needed(subsubexpression) << std::endl;
+            /// If final, edge back to first node
+            if (back_edge_needed(subsubexpression)) {
+                Edge edge{actual_node, first_node, character};
+                edge_list.push_back(edge);
+            }
+            /// Add node, with edge to state machine
+            Edge edge{actual_node, next_node, character};
+            edge_list.push_back(edge);
+            /// Clear the node list
+            node_list.clear();
+        }
+
+        sm.add_state(actual_node, edge_list);
+        std::cout << "ez meg ok?" << std::endl;
+        //sm.print_statemachine();
+        std::cout << "ez meg ok?" << std::endl;
+        actual_node = next_node;
+    }
+
+    std::cout << "Return from sub" << std::endl;
+}
+
+
+Node createNode(std::string expression, size_t start_index) {
+    Node next_node{false, false};
+    /// Set next node to final, if needed
+    //std::string subexpression;
+    //if (start_index > expression.length()) {
+    //    std::string subexpression = expression.substr(expression.length(), 1);
+    //}
+    std::string subexpression = expression.substr(start_index, expression.length() - start_index);
+
+    std::cout << "Subexpression: " << subexpression << std::endl;
+    if (is_node_final(subexpression)) {
+        /// TODO: figyelni kell ra, hogy ha (-jel kovetkezik, akkor ne legyen a node final
+        next_node.set_as_final();
+    }
+
+    return next_node;
+}
+
+StateMachine buildStateMachine_old(std::string expression) {
+
+    StateMachine sm;
+
+    Node init_node{true, false};
+    if (is_node_final(expression)) {
+        init_node.set_as_final();
+    }
+
+    Node actual_node = init_node;
+    std::list<Node> node_list;
+
+    for (size_t i = 0; i < expression.length(); i++) {
+        /// Skip non-alphabetic characters
+        if (expression[i] == '*' || expression[i] == ')') {
+            continue;
+        }
+
+        bool node_list_has_element = !node_list.empty();
+
+        if (node_list_has_element && i + 1 >= expression.length()) {
+            actual_node.set_as_final();
+        }
+
+        /// Create character and edge list
+        int j = i;
+        while (expression[j] == '(') {
+            j++;
+        }
+        char character = expression[j];
+
+        std::list<Edge> edge_list;
+
+
+        /// Add edges from older nodes to the actual, possible because star means 0..*
+        for (Node node : node_list) {
+            //std::cout << "Node list visit: " << character_list.front() << std::endl;
+            Edge new_edge{node, actual_node, character};
+            sm.add_edge_to_list(node, new_edge);
+        }
+
+        //Node next_node{false, false};
+        /// Set next node to final, if needed
+        //std::string subexpression = expression.substr(i + 1, expression.length() - i); /// ez nem az igazi amikor csillag van
+        //std::cout << "(no more)Subexpression: " << subexpression << std::endl;
+        //if (is_node_final(subexpression)) {
+        //    next_node.set_as_final();
+        //}
+
+        if (expression[i] == '(') {
+            size_t start_index = i;
+            size_t end_index = get_end_of_scope(expression, start_index);
+            buildSubStateMachine(sm, actual_node, actual_node, expression, start_index, end_index);
+
+            std::cout << "asd Returned from sub" << std::endl;
+            /// Push actual to node_list - because it must have a star at the end
+            node_list.push_back(actual_node);
+            /// Set i to end_index
+            i = end_index;
+            /// Set actual to next
+            actual_node = createNode(expression, i + 1); /// TODO
+        }
+
+        /// No more character after this
+        else if (i + 1 >= expression.length()) {
+
+          //  Node next_node{false, false};
+          //  Edge edge{actual_node, next_node, character_list};
+            edge_list.push_back(edge);
+//
+            if (node_list_has_element) {
+                /// This is the final node
+                actual_node.set_as_final();
+                std::cout << "asdasdasdasdasdasasadasdad" << std::endl;
+
+                Edge empty_edge;
+                std::list<Edge> empty_list = { empty_edge };
+                sm.add_state(actual_node, empty_list);
+
+            }
+            else {
+                std::cout << "ez is lefutna?" << std::endl;
+                /// Need a final node and edge to reach it
+                Node next_node{false, true};
+                Edge edge{actual_node, next_node, character};
+                edge_list.push_back(edge);
+                sm.add_state(actual_node, edge_list);
+
+                Edge empty_edge;
+                std::list<Edge> empty_list = { empty_edge };
+                sm.add_state(next_node, empty_list);
+
+            }
+
+
+            //sm.print_statemachine();
+        }
+        /// There is at least one more character
+        /// Let's see if it is *
+        else if (expression[i + 1] == '*') {
+            Node next_node = createNode(expression, i + 2); /// i + 2 is good, because i + 1 < length, so i + 2 cannot be > length
+            /// Add a loop edge to the state machine
+            Edge loop_edge{actual_node, actual_node, character};
+            edge_list.push_back(loop_edge);
+            sm.add_state(actual_node, edge_list);
+            //sm.print_statemachine();
+            /// Store this node in the list, for edges coming from this, which cannot be seen now
+            node_list.push_back(actual_node);
+            actual_node = next_node;
+        }
+        /// or is it an alphabetic character?
+        else {//if (isalpha(expression[i + 1])) {
+            Node next_node = createNode(expression, i + 1);
+            /// Add node, with edge to state machine
+            Edge edge{actual_node, next_node, character};
+            edge_list.push_back(edge);
+            sm.add_state(actual_node, edge_list);
+            //sm.print_statemachine();
+            /// Clear the node list
+            node_list.clear();
+            actual_node = next_node;
+        }
+    }
+
+    return sm;
+}
+*/
 
 size_t get_end_of_scope(std::string str, size_t startposition) {
     if (str[startposition] == '|') {
@@ -304,245 +548,132 @@ std::string nomoreunusesparenthesis(std::string expression) {
     return expression;
 }
 
-void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
-                          std::string expression, size_t start_index, size_t end_index) {
-    /// None of the sub state machine's node can be final
-    /// If it seems like it is final, then it must have an edge to the first node
-    //Node first_node = actual_node;
-    start_index++;
-
-    /// Here, only the substring is needed: e.g. a(ab(ac)*b)* --> ab(ac)*b
-    std::string subexpression = expression.substr(start_index , end_index - start_index - 1);
-    std::cout << "subSM " << subexpression << std::endl;
-    std::list<Node> node_list;
-    for (size_t i = 0; i < subexpression.length(); i++) {
-        std::cout << "i: " << i << std::endl;
-        if (subexpression[i] == '*') {
-            continue;
-        }
-
-        /// Create character and edge list
-        char character = subexpression[i];
-        std::list<Edge> edge_list;
-
-        /// Add edges from older nodes to the actual, possible because star means 0..*
-        for (Node node : node_list) {
-            Edge new_edge{node, actual_node, character};
-            sm.add_edge_to_list(node, new_edge);
-        }
-
-        Node next_node{false, false};
-        std::string subsubexpression = subexpression.substr(i,subexpression.length() - i); //was i+1
-
-        /// recursive call, for embedded expressions
-        if (subexpression[i] == '(') {
-            std::cout << "sub(" << std::endl;
-            size_t start_index = i;
-            size_t end_index = get_end_of_scope(subexpression, start_index);
-            buildSubStateMachine(sm, actual_node, first_node, subexpression, start_index, end_index);
-
-
-            /// Push actual to node_list - because it must have a star at the end
-            node_list.push_back(actual_node);
-            /// Set i to end_index
-            i = end_index;
-            /// Set actual to next
-            actual_node = next_node;
-            Edge empty_edge;
-            edge_list.push_back(empty_edge);
-            std::cout << "returned from sub, still in sub" << std::endl;
-        }
-        /// no more character after this
-        else if (i + 1 >= subexpression.length()) {
-            std::cout << "sub-nomore" << std::endl;
-            /// edge back to first node
-            Edge edge{actual_node, first_node, character};
-            edge_list.push_back(edge);
-        }
-        /// next character is *
-        else if (subexpression[i+1] == '*') {
-            std::cout << "sub*" << std::endl;
-            /// If final, edge back to first node
-            if (back_edge_needed(subsubexpression)) {
-                Edge edge{actual_node, first_node, character};
-                edge_list.push_back(edge);
-            }
-            /// Add a loop edge to the state machine
-            Edge loop_edge{actual_node, actual_node, character};
-            edge_list.push_back(loop_edge);
-            /// Store this node in the list, for edges coming from this, which cannot be seen now
-            node_list.push_back(actual_node);
-
-        }
-        /// next character is alphabetic
-        else {//if (isalpha(subexpression[i + 1])) {
-            std::cout << "sub else: " << subsubexpression << " is final: " << back_edge_needed(subsubexpression) << std::endl;
-            /// If final, edge back to first node
-            if (back_edge_needed(subsubexpression)) {
-                Edge edge{actual_node, first_node, character};
-                edge_list.push_back(edge);
-            }
-            /// Add node, with edge to state machine
-            Edge edge{actual_node, next_node, character};
-            edge_list.push_back(edge);
-            /// Clear the node list
-            node_list.clear();
-        }
-
-        sm.add_state(actual_node, edge_list);
-        std::cout << "ez meg ok?" << std::endl;
-        //sm.print_statemachine();
-        std::cout << "ez meg ok?" << std::endl;
-        actual_node = next_node;
-    }
-
-    std::cout << "Return from sub" << std::endl;
+void buildSubStateMachine(StateMachine& sm, std::string subexpression, Node& sub_sm_initial_node, std::list<Node>& node_list) {
+    return;
 }
 
-Node createNode(std::string expression, size_t start_index) {
-    Node next_node{false, false};
-    /// Set next node to final, if needed
-    //std::string subexpression;
-    //if (start_index > expression.length()) {
-    //    std::string subexpression = expression.substr(expression.length(), 1);
-    //}
-    std::string subexpression = expression.substr(start_index, expression.length() - start_index);
-
-    std::cout << "Subexpression: " << subexpression << std::endl;
-    if (is_node_final(subexpression)) {
-        /// TODO: figyelni kell ra, hogy ha (-jel kovetkezik, akkor ne legyen a node final
-        next_node.set_as_final();
-    }
-
-    return next_node;
-}
 
 StateMachine buildStateMachine(std::string expression) {
 
     StateMachine sm;
-
-    Node init_node{true, false};
+    Node initial_node{true, false};
     if (is_node_final(expression)) {
-        init_node.set_as_final();
+        initial_node.set_as_final();
     }
 
-    Node actual_node = init_node;
     std::list<Node> node_list;
+    Node previous_node = initial_node;
 
     for (size_t i = 0; i < expression.length(); i++) {
-        /// Skip non-alphabetic characters
-        if (expression[i] == '*' || expression[i] == ')') {
+        if (expression[i] == ')' || expression[i] == '*') {
             continue;
         }
 
-        bool node_list_has_element = !node_list.empty();
-
-        if (node_list_has_element && i + 1 >= expression.length()) {
-            actual_node.set_as_final();
-        }
-
-        /// Create character and edge list
-        int j = i;
-        while (expression[j] == '(') {
-            j++;
-        }
-        char character = expression[j];
-
-        std::list<Edge> edge_list;
-
-
-        /// Add edges from older nodes to the actual, possible because star means 0..*
-        for (Node node : node_list) {
-            //std::cout << "Node list visit: " << character_list.front() << std::endl;
-            Edge new_edge{node, actual_node, character};
-            sm.add_edge_to_list(node, new_edge);
-        }
-/*
-        Node next_node{false, false};
-        /// Set next node to final, if needed
-        std::string subexpression = expression.substr(i + 1, expression.length() - i); /// ez nem az igazi amikor csillag van
-        std::cout << "(no more)Subexpression: " << subexpression << std::endl;
-        if (is_node_final(subexpression)) {
-            next_node.set_as_final();
-        }
-*/
         if (expression[i] == '(') {
-            size_t start_index = i;
-            size_t end_index = get_end_of_scope(expression, start_index);
-            buildSubStateMachine(sm, actual_node, actual_node, expression, start_index, end_index);
+            size_t start_position = i;
+            int actual_size = expression.length() - start_position;
+            std::string actual_expression = expression.substr(start_position, actual_size);
+            Node sub_sm_initial_node{false, false};
 
-            std::cout << "asd Returned from sub" << std::endl;
-            /// Push actual to node_list - because it must have a star at the end
-            node_list.push_back(actual_node);
-            /// Set i to end_index
-            i = end_index;
-            /// Set actual to next
-            actual_node = createNode(expression, i + 1); /// TODO
+            size_t end_position = get_end_of_scope(expression, start_position);
+            int size = end_position - start_position;
+            std::string subexpression = expression.substr(start_position, size);
+            bool is_subexpression_final = is_node_final(subexpression);
+            if (is_node_final(actual_expression) && is_subexpression_final) {
+                sub_sm_initial_node.set_as_final();
+            }
+
+            {
+                Edge edge{previous_node, sub_sm_initial_node, epsilon};
+                sm.add_edge_to_list(previous_node, edge);
+            }
+            for (Node node : node_list) {
+                Edge edge{node, sub_sm_initial_node, epsilon};
+                sm.add_edge_to_list(node, edge);
+            }
+
+            buildSubStateMachine(sm, subexpression, sub_sm_initial_node, node_list);
         }
-
-        /// No more character after this
         else if (i + 1 >= expression.length()) {
-/*
-            Node next_node{false, false};
-            Edge edge{actual_node, next_node, character_list};
-            edge_list.push_back(edge);
-*/
-            if (node_list_has_element) {
-                /// This is the final node
-                actual_node.set_as_final();
-                std::cout << "asdasdasdasdasdasasadasdad" << std::endl;
-
-                Edge empty_edge;
-                std::list<Edge> empty_list = { empty_edge };
-                sm.add_state(actual_node, empty_list);
-
+            Node final_node{false, true};
+            {
+                Edge edge{previous_node, final_node, expression[i]};
+                if (sm.contains_node(previous_node)) {
+                    sm.add_edge_to_list(previous_node, edge);
+                }
+                else {
+                    std::list<Edge> edge_list = { edge };
+                    sm.add_state(previous_node, edge_list);
+                }
             }
-            else {
-                std::cout << "ez is lefutna?" << std::endl;
-                /// Need a final node and edge to reach it
-                Node next_node{false, true};
-                Edge edge{actual_node, next_node, character};
-                edge_list.push_back(edge);
-                sm.add_state(actual_node, edge_list);
-
-                Edge empty_edge;
-                std::list<Edge> empty_list = { empty_edge };
-                sm.add_state(next_node, empty_list);
-
+            for (Node node : node_list) {
+                Edge edge{node, final_node, expression[i]};
+                sm.add_edge_to_list(node, edge);
             }
-
-
-            //sm.print_statemachine();
+            Edge no_matter_edge{final_node, final_node, '.'};
+            std::list<Edge> edge_list = { no_matter_edge };
+            sm.add_state(final_node, edge_list);
         }
-        /// There is at least one more character
-        /// Let's see if it is *
         else if (expression[i + 1] == '*') {
-            Node next_node = createNode(expression, i + 2); /// i + 2 is good, because i + 1 < length, so i + 2 cannot be > length
-            /// Add a loop edge to the state machine
-            Edge loop_edge{actual_node, actual_node, character};
-            edge_list.push_back(loop_edge);
+            Node actual_node{false, false};
+            std::string subexpression = expression.substr(i, expression.length() - i);
+            if (is_node_final(subexpression)) {
+                actual_node.set_as_final();
+            }
+            {
+                Edge edge{previous_node, actual_node, expression[i]};
+                if (sm.contains_node(previous_node)) {
+                    sm.add_edge_to_list(previous_node, edge);
+                }
+                else {
+                    std::list<Edge> edge_list = { edge };
+                    sm.add_state(previous_node, edge_list);
+                }
+            }
+            for (Node node : node_list) {
+                Edge edge{node, actual_node, expression[i]};
+                sm.add_edge_to_list(node, edge);
+            }
+            Edge loop_edge{actual_node, actual_node, expression[i]};
+            std::list<Edge> edge_list = { loop_edge };
             sm.add_state(actual_node, edge_list);
-            //sm.print_statemachine();
-            /// Store this node in the list, for edges coming from this, which cannot be seen now
             node_list.push_back(actual_node);
-            actual_node = next_node;
         }
-        /// or is it an alphabetic character?
-        else {//if (isalpha(expression[i + 1])) {
-            Node next_node = createNode(expression, i + 1);
-            /// Add node, with edge to state machine
-            Edge edge{actual_node, next_node, character};
-            edge_list.push_back(edge);
-            sm.add_state(actual_node, edge_list);
-            //sm.print_statemachine();
-            /// Clear the node list
+        else {
+            Node actual_node{false, false};
+            size_t start_position = i + 1;
+            std::string subexpression = expression.substr(start_position, expression.length() - start_position);
+            if (is_node_final(subexpression)) {
+                actual_node.set_as_final();
+            }
+            {
+                Edge edge{previous_node, actual_node, expression[i]};
+                if (sm.contains_node(previous_node)) {
+                    sm.add_edge_to_list(previous_node, edge);
+                }
+                else {
+                    std::list<Edge> edge_list = { edge };
+                    sm.add_state(previous_node, edge_list);
+                }
+            }
+            for (Node node : node_list) {
+                Edge edge{node, actual_node, expression[i]};
+                sm.add_edge_to_list(actual_node, edge);
+            }
+            previous_node = actual_node;
             node_list.clear();
-            actual_node = next_node;
         }
+
     }
 
     return sm;
 }
+
+
+
+
+
+
 
 void test_nomoreunusedparenthesis() {
     std::string ex1 = "aaa";
@@ -748,6 +879,8 @@ void test_no_inner() {
         std::string s4 = "aaaaaaaaaaaaaan";
         std::cout << s4 << " exptected: 0, actual: " << sm.check(s4) << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
+        std::cout << "-------------------------------------" << std::endl;
     }
     {
         std::string ex = "a";
@@ -761,6 +894,8 @@ void test_no_inner() {
         std::cout << s3 << " exptected: 0, actual: " << sm.check(s3) << std::endl;
         std::string s4 = "aaaaaaaaaaaaaan";
         std::cout << s4 << " exptected: 0, actual: " << sm.check(s4) << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
         std::cout << "-------------------------------------" << std::endl;
     }
     {
@@ -779,6 +914,8 @@ void test_no_inner() {
         std::cout << s5 << " exptected: 0, actual: " << sm.check(s5) << std::endl;
         std::string s6 = "ba";
         std::cout << s6 << " exptected: 0, actual: " << sm.check(s6) << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
         std::cout << "-------------------------------------" << std::endl;
     }
     {
@@ -801,6 +938,8 @@ void test_no_inner() {
         std::cout << s7 << " exptected: 0, actual: " << sm.check(s7) << std::endl;
         std::string s8 = "abbbbbbbbbbbbbbbbbbbbbbb";
         std::cout << s8 << " exptected: 1, actual: " << sm.check(s8) << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
         std::cout << "-------------------------------------" << std::endl;
     }
     {
@@ -859,6 +998,8 @@ void test_no_inner() {
         std::string s11 = "aaaaaaaaaaaaaaaaaaaaaaaaab";
         std::cout << s11 << " exptected: 1, actual: " << sm.check(s11) << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
+        std::cout << "-------------------------------------" << std::endl;
     }
     {
         std::string ex = "a*b*c";
@@ -899,6 +1040,8 @@ void test_no_inner() {
         std::string s17 = "aaaaaaaaaaaaaaaaaaaaaaaaabc";
         std::cout << s17 << " exptected: 1, actual: " << sm.check(s17) << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
+        std::cout << "-------------------------------------" << std::endl;
     }
     {
         std::string ex = "a*b*c*";
@@ -937,11 +1080,13 @@ void test_no_inner() {
         std::string s16 = "ac";
         std::cout << s16 << " exptected: 1, actual: " << sm.check(s16) << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+        sm.print_statemachine();
     }
 }
 
 int main()
 {
+    //std::cout << epsilon << std::endl;
     /*
     std::map<int, int> asd;
     asd[1] = 21;
@@ -964,7 +1109,7 @@ int main()
     //test_inner_expression();
     //test_simple_inner_expression();
     test_no_inner();
-    //test3();
+    //test2();
 
     //std::cout << get_end_of_scope("aa(bc(bd))", 5) << std::endl;
 
