@@ -128,11 +128,14 @@ bool StateMachine::check(std::string expression) const {
                 char character = edge.get_label_char();
                // std::cout << "ITERATE OVER CHARACTERS" << std::endl;
                 /// add the end nodes of the good edges
-                if (str[0] == character) { //|| epsilon == character) {
+                if (str[0] == character || epsilon == character) {
+                    //std::cout << str[0] << " - " << character << std::endl;
                    // std::cout << "ADD NEW NODE TO THE QUEUE" << std::endl;
                     Node next_node = edge.get_end_node();
                     std::string new_string = str;
-                    new_string.erase(0, 1);
+                    if (str[0] == character) {
+                        new_string.erase(0, 1);
+                    }
                     node_queue.push(make_pair(next_node, new_string));
                 }
             }
