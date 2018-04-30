@@ -8,7 +8,7 @@ class Edge {
 public:
 
     Edge();
-    Edge(Node begin, Node end, std::list<char> chars);
+    Edge(Node begin, Node end, char char_);
 
     Edge(Edge const& other);
     Edge& operator=(Edge const& rhs);
@@ -19,14 +19,13 @@ public:
     ~Edge();
 
     Node get_end_node() const;
-    std::list<char> get_label_chars() const;
+    char get_label_char() const;
 
     Node begin_node;
     Node end_node;
-    char getfirstchar();
 private:
 
-    std::list<char> label_chars;
+    char label_char;
 };
 
 #endif

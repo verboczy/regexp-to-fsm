@@ -7,7 +7,7 @@ Edge::Edge() {
     //std::cout << "Default constructor - E" << std::endl;
 }
 
-Edge::Edge(Node begin, Node end, std::list<char> chars): begin_node{begin}, end_node{end}, label_chars{chars} {
+Edge::Edge(Node begin, Node end, char char_): begin_node{begin}, end_node{end}, label_char{char_} {
     //std::cout << "Constructor - E" << std::endl;
 }
 
@@ -15,7 +15,7 @@ Edge::Edge(Edge const& other) {
     //std::cout << "Copy constructor - E" << std::endl;
     begin_node = other.begin_node;
     end_node = other.end_node;
-    label_chars = other.label_chars;
+    label_char = other.label_char;
 }
 
 Edge& Edge::operator=(Edge const& rhs) {
@@ -24,7 +24,7 @@ Edge& Edge::operator=(Edge const& rhs) {
     if (this != &rhs) {
         begin_node = rhs.begin_node;
         end_node = rhs.end_node;
-        label_chars = rhs.label_chars;
+        label_char = rhs.label_char;
     }
 
     return *this;
@@ -34,7 +34,7 @@ Edge::Edge(Edge && other) {
     //std::cout << "Move constructor - E" << std::endl;
     begin_node = other.begin_node;
     end_node = other.end_node;
-    label_chars = std::move_if_noexcept(other.label_chars); /// check this
+    label_char = std::move_if_noexcept(other.label_char); /// check this
 }
 
 Edge& Edge::operator=(Edge && rhs) {
@@ -43,7 +43,7 @@ Edge& Edge::operator=(Edge && rhs) {
     if (this != &rhs) {
         begin_node = rhs.begin_node;
         end_node = rhs.end_node;
-        label_chars = std::move_if_noexcept(rhs.label_chars); /// check this
+        label_char = std::move_if_noexcept(rhs.label_char); /// check this
     }
 
     return *this;
@@ -57,13 +57,6 @@ Node Edge::get_end_node() const {
     return end_node;
 }
 
-std::list<char> Edge::get_label_chars() const {
-    return label_chars;
-}
-
-char Edge::getfirstchar() {
-    for (auto chararcter : label_chars) {
-        return chararcter;
-    }
-    return '.';
+char Edge::get_label_char() const {
+    return label_char;
 }

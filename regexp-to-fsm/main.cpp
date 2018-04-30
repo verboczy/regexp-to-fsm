@@ -10,7 +10,7 @@ using namespace std;
 void test1() {
     Node node{true, true};
 
-    std::list<char> chars = { 'a' };
+    char chars = 'a';
     Edge edge{node, node, chars};
     std::list<Edge> edges = { edge };
     std::cout << "edge size " << edges.size() << std::endl;
@@ -34,7 +34,7 @@ void test2() {
     Node node1{true, false};
     Node node2{false, false};
 
-    std::list<char> chars1 = { 'a' };
+    char chars1 = 'a';
     Edge edge1{node1, node2, chars1};
     std::list<Edge> edges1 = { edge1 };
 
@@ -43,10 +43,10 @@ void test2() {
 
     Node node3{false, true};
 
-    std::list<char> chars2 = { 'b' };
+    char chars2 = 'b';
     Edge edge2{node2, node2, chars2};
 
-    std::list<char> chars3 = { 'a' };
+    char chars3 = 'a';
     Edge edge3{node2, node3, chars3};
 
     std::list<Edge> edges2 = { edge2, edge3 };
@@ -69,8 +69,8 @@ void test3() {
     Node node1{true, false};
     Node node2{false, true};
 
-    std::list<char> chars1 = { 'a' };
-    std::list<char> chars2 = { 'b' };
+    char chars1 = 'a';
+    char chars2 = 'b';
     Edge edge1{node1, node1, chars1};
     Edge edge2{node1, node2, chars2};
     std::list<Edge> edges1 = { edge1 };
@@ -305,8 +305,7 @@ std::string nomoreunusesparenthesis(std::string expression) {
 }
 
 void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
-                          std::string expression, size_t start_index, size_t end_index,
-                          bool is_final) {
+                          std::string expression, size_t start_index, size_t end_index) {
     /// None of the sub state machine's node can be final
     /// If it seems like it is final, then it must have an edge to the first node
     //Node first_node = actual_node;
@@ -323,12 +322,12 @@ void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
         }
 
         /// Create character and edge list
-        std::list<char> character_list = { subexpression[i] };
+        char character = subexpression[i];
         std::list<Edge> edge_list;
 
         /// Add edges from older nodes to the actual, possible because star means 0..*
         for (Node node : node_list) {
-            Edge new_edge{node, actual_node, character_list};
+            Edge new_edge{node, actual_node, character};
             sm.add_edge_to_list(node, new_edge);
         }
 
@@ -357,7 +356,7 @@ void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
         else if (i + 1 >= subexpression.length()) {
             std::cout << "sub-nomore" << std::endl;
             /// edge back to first node
-            Edge edge{actual_node, first_node, character_list};
+            Edge edge{actual_node, first_node, character};
             edge_list.push_back(edge);
         }
         /// next character is *
@@ -365,11 +364,11 @@ void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
             std::cout << "sub*" << std::endl;
             /// If final, edge back to first node
             if (back_edge_needed(subsubexpression)) {
-                Edge edge{actual_node, first_node, character_list};
+                Edge edge{actual_node, first_node, character};
                 edge_list.push_back(edge);
             }
             /// Add a loop edge to the state machine
-            Edge loop_edge{actual_node, actual_node, character_list};
+            Edge loop_edge{actual_node, actual_node, character};
             edge_list.push_back(loop_edge);
             /// Store this node in the list, for edges coming from this, which cannot be seen now
             node_list.push_back(actual_node);
@@ -380,11 +379,11 @@ void buildSubStateMachine(StateMachine& sm, Node actual_node, Node first_node,
             std::cout << "sub else: " << subsubexpression << " is final: " << back_edge_needed(subsubexpression) << std::endl;
             /// If final, edge back to first node
             if (back_edge_needed(subsubexpression)) {
-                Edge edge{actual_node, first_node, character_list};
+                Edge edge{actual_node, first_node, character};
                 edge_list.push_back(edge);
             }
             /// Add node, with edge to state machine
-            Edge edge{actual_node, next_node, character_list};
+            Edge edge{actual_node, next_node, character};
             edge_list.push_back(edge);
             /// Clear the node list
             node_list.clear();
@@ -443,12 +442,11 @@ StateMachine buildStateMachine(std::string expression) {
         }
 
         /// Create character and edge list
-        std::list<char> character_list;
         int j = i;
         while (expression[j] == '(') {
             j++;
         }
-        character_list.push_back(expression[j]);
+        char character = expression[j];
 
         std::list<Edge> edge_list;
 
@@ -456,7 +454,7 @@ StateMachine buildStateMachine(std::string expression) {
         /// Add edges from older nodes to the actual, possible because star means 0..*
         for (Node node : node_list) {
             //std::cout << "Node list visit: " << character_list.front() << std::endl;
-            Edge new_edge{node, actual_node, character_list};
+            Edge new_edge{node, actual_node, character};
             sm.add_edge_to_list(node, new_edge);
         }
 /*
@@ -503,7 +501,7 @@ StateMachine buildStateMachine(std::string expression) {
                 std::cout << "ez is lefutna?" << std::endl;
                 /// Need a final node and edge to reach it
                 Node next_node{false, true};
-                Edge edge{actual_node, next_node, character_list};
+                Edge edge{actual_node, next_node, character};
                 edge_list.push_back(edge);
                 sm.add_state(actual_node, edge_list);
 
@@ -521,7 +519,7 @@ StateMachine buildStateMachine(std::string expression) {
         else if (expression[i + 1] == '*') {
             Node next_node = createNode(expression, i + 2); /// i + 2 is good, because i + 1 < length, so i + 2 cannot be > length
             /// Add a loop edge to the state machine
-            Edge loop_edge{actual_node, actual_node, character_list};
+            Edge loop_edge{actual_node, actual_node, character};
             edge_list.push_back(loop_edge);
             sm.add_state(actual_node, edge_list);
             //sm.print_statemachine();
@@ -533,7 +531,7 @@ StateMachine buildStateMachine(std::string expression) {
         else {//if (isalpha(expression[i + 1])) {
             Node next_node = createNode(expression, i + 1);
             /// Add node, with edge to state machine
-            Edge edge{actual_node, next_node, character_list};
+            Edge edge{actual_node, next_node, character};
             edge_list.push_back(edge);
             sm.add_state(actual_node, edge_list);
             //sm.print_statemachine();
@@ -964,8 +962,8 @@ int main()
     backedgeneededtest();
     */
     //test_inner_expression();
-    test_simple_inner_expression();
-    //test_no_inner();
+    //test_simple_inner_expression();
+    test_no_inner();
     //test3();
 
     //std::cout << get_end_of_scope("aa(bc(bd))", 5) << std::endl;
