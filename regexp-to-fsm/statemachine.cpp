@@ -6,9 +6,7 @@
 
 char epsilon = '@';
 
-StateMachine::StateMachine() {
-    std::cout << "Default constructor - SM" << std::endl;
-}
+StateMachine::StateMachine() { }
 
 StateMachine::StateMachine(StateMachine const& other) {
     states = other.states;
@@ -199,7 +197,6 @@ std::unordered_set<std::string> StateMachineBuilder::nomoreor(std::string expres
     size_t start_position = get_start_of_scope(expression, pipe_position - 1);
     std::string no_start = expression;
     no_start.erase(start_position, pipe_position - start_position + 1);
-    //std::cout << "Without start: " << no_start << std::endl;
 
     withoutor = nomoreor(no_start, withoutor);
 
@@ -240,9 +237,23 @@ bool StateMachineBuilder::is_node_final(std::string expression) {
 
 
 std::string StateMachineBuilder::nomoreunusesparenthesis(std::string expression) {
+    int opener = 0;
+    int closer = 0;
+    for (size_t i = 0; i < expression.length(); i++) {
+        if (expression[i] == '(') {
+            opener++;
+        }
+        else if (expression[i] == ')') {
+            closer++;
+        }
+    }
+    if (opener != closer) {
+        throw std::invalid_argument("Something is not right with parenthesis");
+    }
     size_t search_start_position = 0;
     size_t position;
     while ((position = expression.find('(', search_start_position)) != std::string::npos) {
+        std::string temp_copy = expression;
         int parenthesis_count = 1;
         size_t i = position + 1;
         while (parenthesis_count != 0 && i < expression.length()) {
@@ -285,7 +296,6 @@ std::string StateMachineBuilder::nomoreunusesparenthesis(std::string expression)
 
 std::list<Node> StateMachineBuilder::buildSubStateMachine(StateMachine& sm, std::string expression, std::list<Node> initial_node_list,
                           std::list<Node>& original_node_list, bool is_it_final) {
-    std::cout << "buildStateMachineHelper: " << expression << std::endl;
 
     Node previous_node = initial_node_list.back();
     std::list<Node> node_list;
@@ -541,18 +551,12 @@ StateMachine StateMachineBuilder::buildSingleStateMachine(std::string expression
 
             for (Node node : node_list) {
                 Edge edge{node, actual_node, expression[i]};
-                //sm.print_statemachine();
-                //std::cout << "Contains? " << node.id << " " << sm.contains_node(node) << std::endl;
-                //sm.add_edge_to_list(actual_node, edge);
                 sm.add_edge_to_list(node, edge);
             }
-            //sm.print_statemachine();
             previous_node = actual_node;
             node_list.clear();
         }
-
     }
-
     return sm;
 }
 
@@ -560,13 +564,10 @@ void StateMachineBuilder::buildStateMachine(std::string expression) {
     std::list<StateMachine> sm_list;
     std::unordered_set<std::string> expression_set;
     expression_set = nomoreor(expression, expression_set);
-
     for (std::string exp : expression_set) {
         std::string exp_no_plus = plustostar(exp);
-        //std::cout << exp_no_plus << std::endl;
         std::string exp_final = nomoreunusesparenthesis(exp_no_plus);
         StateMachine sm = buildSingleStateMachine(exp_final);
-        //sm.print_statemachine();
         sm_list.push_back(sm);
     }
 
