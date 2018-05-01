@@ -13,17 +13,17 @@ public:
     Edge(Edge const& other);
     Edge& operator=(Edge const& rhs);
 
-    Edge(Edge && other);
-    Edge& operator=(Edge && rhs);
+    Edge(Edge && other) noexcept;
+    Edge& operator=(Edge && rhs) noexcept;
 
     ~Edge();
 
     Node get_end_node() const;
     char get_label_char() const;
 
+private:
     Node begin_node;
     Node end_node;
-private:
 
     char label_char;
 };

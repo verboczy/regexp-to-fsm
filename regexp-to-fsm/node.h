@@ -10,12 +10,11 @@ public:
     Node(Node const& other);
     Node& operator=(Node const& rhs);
 
-    Node(Node && other);
-    Node& operator=(Node && rhs);
+    Node(Node && other) noexcept;
+    Node& operator=(Node && rhs) noexcept;
 
     ~Node();
 
-    void set_as_init();
     void set_as_final();
 
     bool get_is_init() const;
@@ -23,10 +22,10 @@ public:
 
     bool operator< (Node const& rhs) const;
 
-    int id;
 private:
+    int id;
     static int max_id;
-    //std::list<Edge> edges;
+
     bool is_init;
     bool is_final;
 };
