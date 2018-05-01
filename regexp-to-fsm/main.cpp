@@ -508,12 +508,14 @@ std::string nomoreunusesparenthesis(std::string expression) {
 }
 
 
-void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<Node> initial_node_list,
+std::list<Node> buildSubStateMachine(StateMachine& sm, std::string expression, std::list<Node> initial_node_list,
                           std::list<Node>& original_node_list, bool is_it_final) {
     std::cout << "buildStateMachineHelper: " << expression << std::endl;
 
     Node previous_node = initial_node_list.back();
     std::list<Node> node_list;
+
+    std::list<Node> list_of_end_nodes;
 
     for (size_t i = 0; i < expression.length(); i++) {
         if (expression[i] == ')' || expression[i] == '*') {
@@ -544,7 +546,10 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<No
                 sm.add_edge_to_list(node, edge);
             }
             initial_node_list.push_back(sub_sm_initial_node);
-            buildSubStateMachine(sm, subexpression, initial_node_list, original_node_list, is_node_final(actual_expression));
+            auto nl = buildSubStateMachine(sm, subexpression, initial_node_list, original_node_list, is_node_final(actual_expression));
+            for (auto n : nl) {
+                node_list.push_back(n);
+            }
             i = end_position;
         }
         else if (i + 1 >= expression.length()) {
@@ -559,6 +564,7 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<No
                 sm.add_state(previous_node, edge_list);
             }
             original_node_list.push_back(final_node);
+            list_of_end_nodes.push_back(final_node);
 
             for (Node node : node_list) {
                 Edge edge{node, final_node, expression[i]};
@@ -585,6 +591,7 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<No
                 }
                 sm.add_state(actual_node, edge_list);
                 original_node_list.push_back(actual_node);
+                list_of_end_nodes.push_back(actual_node);
             }
 
             Edge edge{previous_node, actual_node, expression[i]};
@@ -625,6 +632,7 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<No
                 }
                 sm.add_state(actual_node, edge_list);
                 original_node_list.push_back(actual_node);
+                list_of_end_nodes.push_back(actual_node);
             }
 
             Edge edge{previous_node, actual_node, expression[i]};
@@ -643,8 +651,8 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<No
             previous_node = actual_node;
             node_list.clear();
         }
-
     }
+    return list_of_end_nodes;
 }
 
 StateMachine buildStateMachine(std::string expression) {
@@ -688,7 +696,10 @@ StateMachine buildStateMachine(std::string expression) {
             }
 
             std::list<Node> init_node_list = { sub_sm_initial_node };
-            buildSubStateMachine(sm, subexpression, init_node_list, node_list, is_node_final(actual_expression));
+            auto nl = buildSubStateMachine(sm, subexpression, init_node_list, node_list, is_node_final(actual_expression));
+            for (auto n : nl) {
+                node_list.push_back(n);
+            }
             i = end_position;
         }
         else if (i + 1 >= expression.length()) {
@@ -807,34 +818,66 @@ void isfinaltest() {
 }
 
 void test_inner_expression() {
-    std::string ex = "a(b(da)*)*";
-    StateMachine sm = buildStateMachine(ex);
-    std::cout << "State machine: " << ex << std::endl;
-    std::string s1 = "a";
-    std::cout << s1 << " exptected: 1, actual: " << sm.check(s1) << std::endl;
-    std::string s2 = "ab";
-    std::cout << s2 << " exptected: 1, actual: " << sm.check(s2) << std::endl;
-    std::string s3 = "abda";
-    std::cout << s3 << " exptected: 1, actual: " << sm.check(s3) << std::endl;
-    std::string s4 = "abbbbbbbb";
-    std::cout << s4 << " exptected: 1, actual: " << sm.check(s4) << std::endl;
-    std::string s5 = "abbbbbbbbda";
-    std::cout << s5 << " exptected: 1, actual: " << sm.check(s5) << std::endl;
-    std::string s6 = "abdadadada";
-    std::cout << s6 << " exptected: 1, actual: " << sm.check(s6) << std::endl;
-    std::string s7 = "abbdadabda";
-    std::cout << s7 << " exptected: 1, actual: " << sm.check(s7) << std::endl;
+    {
+        std::string ex = "a(b(da)*)*";
+        StateMachine sm = buildStateMachine(ex);
+        std::cout << "State machine: " << ex << std::endl;
+        std::string s1 = "a";
+        std::cout << s1 << " exptected: 1, actual: " << sm.check(s1) << std::endl;
+        std::string s2 = "ab";
+        std::cout << s2 << " exptected: 1, actual: " << sm.check(s2) << std::endl;
+        std::string s3 = "abda";
+        std::cout << s3 << " exptected: 1, actual: " << sm.check(s3) << std::endl;
+        std::string s4 = "abbbbbbbb";
+        std::cout << s4 << " exptected: 1, actual: " << sm.check(s4) << std::endl;
+        std::string s5 = "abbbbbbbbda";
+        std::cout << s5 << " exptected: 1, actual: " << sm.check(s5) << std::endl;
+        std::string s6 = "abdadadada";
+        std::cout << s6 << " exptected: 1, actual: " << sm.check(s6) << std::endl;
+        std::string s7 = "abbdadabda";
+        std::cout << s7 << " exptected: 1, actual: " << sm.check(s7) << std::endl;
 
-    std::string s8 = "bbdadabda";
-    std::cout << s8 << " exptected: 0, actual: " << sm.check(s8) << std::endl;
-    std::string s9 = "abdaa";
-    std::cout << s9 << " exptected: 0, actual: " << sm.check(s9) << std::endl;
-    std::string s10 = "abdd";
-    std::cout << s10 << " exptected: 0, actual: " << sm.check(s10) << std::endl;
-    std::string s11 = "ada";
-    std::cout << s11 << " exptected: 0, actual: " << sm.check(s11) << std::endl;
+        std::string s8 = "bbdadabda";
+        std::cout << s8 << " exptected: 0, actual: " << sm.check(s8) << std::endl;
+        std::string s9 = "abdaa";
+        std::cout << s9 << " exptected: 0, actual: " << sm.check(s9) << std::endl;
+        std::string s10 = "abdd";
+        std::cout << s10 << " exptected: 0, actual: " << sm.check(s10) << std::endl;
+        std::string s11 = "ada";
+        std::cout << s11 << " exptected: 0, actual: " << sm.check(s11) << std::endl;
+        sm.print_statemachine();
+        std::cout << "--------------------------------------------------" << std::endl;
+    }
+    {
+        std::string ex = "a(b(d(c*e*)*a)*b)*f";
+        StateMachine sm = buildStateMachine(ex);
+        std::cout << "State machine: " << ex << std::endl;
+        std::string s1 = "af";
+        std::cout << s1 << " exptected: 1, actual: " << sm.check(s1) << std::endl;
+        std::string s2 = "abbf";
+        std::cout << s2 << " exptected: 1, actual: " << sm.check(s2) << std::endl;
+        std::string s3 = "abdceabf";
+        std::cout << s3 << " exptected: 1, actual: " << sm.check(s3) << std::endl;
+        std::string s4 = "abbbbbdadadceabf";
+        std::cout << s4 << " exptected: 1, actual: " << sm.check(s4) << std::endl;
+        std::string s5 = "abbbbbdadadabf";
+        std::cout << s5 << " exptected: 1, actual: " << sm.check(s5) << std::endl;
+        std::string s6 = "abbbbbdadadeeeeeeeeeeeeeabf";
+        std::cout << s6 << " exptected: 1, actual: " << sm.check(s6) << std::endl;
+        std::string s7 = "abbbbbdadadcccccccccccccabf";
+        std::cout << s7 << " exptected: 1, actual: " << sm.check(s7) << std::endl;
+        std::string s8 = "abbbbbdadadceecceeececeabf";
+        std::cout << s8 << " exptected: 1, actual: " << sm.check(s8) << std::endl;
 
-    sm.print_statemachine();
+        std::string s9 = "abdaaf";
+        std::cout << s9 << " exptected: 0, actual: " << sm.check(s9) << std::endl;
+        std::string s10 = "abf";
+        std::cout << s10 << " exptected: 0, actual: " << sm.check(s10) << std::endl;
+        std::string s11 = "abbbbbdadadcebf";
+        std::cout << s11 << " exptected: 0, actual: " << sm.check(s11) << std::endl;
+        sm.print_statemachine();
+        std::cout << "--------------------------------------------------" << std::endl;
+    }
 }
 
 void test_simple_inner_expression() {
