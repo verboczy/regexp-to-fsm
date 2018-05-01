@@ -463,47 +463,6 @@ bool is_node_final(std::string expression) {
     return true;
 }
 
-/// UNDER CONSTRUCTION
-bool back_edge_needed(std::string expression) {
-    if (expression.length() <= 1) {
-        return true;
-    }
-    //std::cout << "expression: " << expression << std::endl;
-    //std::string subexpression = expression.substr(1, expression.length() - 1);
-    //std::cout << "expression: " << subexpression << std::endl;
-    int paranthesis_count = 0;
-    for (size_t i = 0; i < expression.length(); i++) {
-        if (isalpha(expression[i]) && paranthesis_count == 0) {
-            if (i + 1 < expression.length() && expression[i + 1] == '*') {
-                /// Looks good at this point, but it is not know what comes after it.
-            }
-            else {
-                if (i != 0) {
-                    /// Last character was an alphabetic character or the next character is not *.
-                    return false;
-                }
-            }
-        }
-        else if (expression[i] == '(') {
-            paranthesis_count++;
-        }
-        else if (expression[i] == ')') {
-            paranthesis_count--;
-            if (paranthesis_count == 0) {
-                if (i + 1 < expression.length() && expression[i + 1] == '*') {
-                    /// Looks good at this point, but it is not know what comes after it.
-                }
-                else {
-                    /// If ) is the last character or not a * is after it then it cannot be final.
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
 
 std::string nomoreunusesparenthesis(std::string expression) {
     size_t search_start_position = 0;
@@ -549,11 +508,11 @@ std::string nomoreunusesparenthesis(std::string expression) {
 }
 
 
-void buildSubStateMachine(StateMachine& sm, std::string expression, Node initial_node,
-                          Node before_initial, std::list<Node>& original_node_list, bool is_it_final) {
+void buildSubStateMachine(StateMachine& sm, std::string expression, std::list<Node> initial_node_list,
+                          std::list<Node>& original_node_list, bool is_it_final) {
     std::cout << "buildStateMachineHelper: " << expression << std::endl;
 
-    Node previous_node = initial_node;
+    Node previous_node = initial_node_list.back();
     std::list<Node> node_list;
 
     for (size_t i = 0; i < expression.length(); i++) {
@@ -577,37 +536,39 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, Node initial
                 sub_sm_initial_node.set_as_final();
             }
 
-            {
-                Edge edge{previous_node, sub_sm_initial_node, epsilon};
-                sm.add_edge_to_list(previous_node, edge);
-            }
+            Edge edge{previous_node, sub_sm_initial_node, epsilon};
+            sm.add_edge_to_list(previous_node, edge);
+
             for (Node node : node_list) {
                 Edge edge{node, sub_sm_initial_node, epsilon};
                 sm.add_edge_to_list(node, edge);
             }
-
-            buildSubStateMachine(sm, subexpression, sub_sm_initial_node, previous_node, original_node_list, is_node_final(actual_expression));
+            initial_node_list.push_back(sub_sm_initial_node);
+            buildSubStateMachine(sm, subexpression, initial_node_list, original_node_list, is_node_final(actual_expression));
             i = end_position;
         }
         else if (i + 1 >= expression.length()) {
             Node final_node{false, is_it_final};
-            {
-                Edge edge{previous_node, final_node, expression[i]};
-                if (sm.contains_node(previous_node)) {
-                    sm.add_edge_to_list(previous_node, edge);
-                }
-                else {
-                    std::list<Edge> edge_list = { edge };
-                    sm.add_state(previous_node, edge_list);
-                }
-                original_node_list.push_back(final_node);
+
+            Edge edge{previous_node, final_node, expression[i]};
+            if (sm.contains_node(previous_node)) {
+                sm.add_edge_to_list(previous_node, edge);
             }
+            else {
+                std::list<Edge> edge_list = { edge };
+                sm.add_state(previous_node, edge_list);
+            }
+            original_node_list.push_back(final_node);
+
             for (Node node : node_list) {
                 Edge edge{node, final_node, expression[i]};
                 sm.add_edge_to_list(node, edge);
             }
-            Edge to_first_node{final_node, before_initial, epsilon};
-            std::list<Edge> edge_list = { to_first_node };
+            std::list<Edge> edge_list;
+            for (Node init_node : initial_node_list) {
+                Edge to_first_node{final_node, init_node, epsilon};
+                edge_list.push_back(to_first_node);
+            }
             sm.add_state(final_node, edge_list);
         }
         else if (expression[i + 1] == '*') {
@@ -617,21 +578,24 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, Node initial
                 if (is_it_final) {
                     actual_node.set_as_final();
                 }
-                Edge edge{actual_node, before_initial, epsilon};
-                std::list<Edge> edge_list = { edge };
+                std::list<Edge> edge_list;
+                for (Node init_node : initial_node_list) {
+                    Edge edge{actual_node, init_node, epsilon};
+                    edge_list.push_back(edge);
+                }
                 sm.add_state(actual_node, edge_list);
                 original_node_list.push_back(actual_node);
             }
-            {
-                Edge edge{previous_node, actual_node, expression[i]};
-                if (sm.contains_node(previous_node)) {
-                    sm.add_edge_to_list(previous_node, edge);
-                }
-                else {
-                    std::list<Edge> edge_list = { edge };
-                    sm.add_state(previous_node, edge_list);
-                }
+
+            Edge edge{previous_node, actual_node, expression[i]};
+            if (sm.contains_node(previous_node)) {
+                sm.add_edge_to_list(previous_node, edge);
             }
+            else {
+                std::list<Edge> edge_list = { edge };
+                sm.add_state(previous_node, edge_list);
+            }
+
             for (Node node : node_list) {
                 Edge edge{node, actual_node, expression[i]};
                 sm.add_edge_to_list(node, edge);
@@ -654,21 +618,24 @@ void buildSubStateMachine(StateMachine& sm, std::string expression, Node initial
                 if (is_it_final) {
                     actual_node.set_as_final();
                 }
-                Edge edge{actual_node, before_initial, epsilon};
-                std::list<Edge> edge_list = { edge };
+                std::list<Edge> edge_list;
+                for (Node init_node : initial_node_list) {
+                    Edge edge{actual_node, init_node, epsilon};
+                    edge_list.push_back(edge);
+                }
                 sm.add_state(actual_node, edge_list);
                 original_node_list.push_back(actual_node);
             }
-            {
-                Edge edge{previous_node, actual_node, expression[i]};
-                if (sm.contains_node(previous_node)) {
-                    sm.add_edge_to_list(previous_node, edge);
-                }
-                else {
-                    std::list<Edge> edge_list = { edge };
-                    sm.add_state(previous_node, edge_list);
-                }
+
+            Edge edge{previous_node, actual_node, expression[i]};
+            if (sm.contains_node(previous_node)) {
+                sm.add_edge_to_list(previous_node, edge);
             }
+            else {
+                std::list<Edge> edge_list = { edge };
+                sm.add_state(previous_node, edge_list);
+            }
+
             for (Node node : node_list) {
                 Edge edge{node, actual_node, expression[i]};
                 sm.add_edge_to_list(actual_node, edge);
@@ -720,7 +687,8 @@ StateMachine buildStateMachine(std::string expression) {
                 sm.add_edge_to_list(node, edge);
             }
 
-            buildSubStateMachine(sm, subexpression, sub_sm_initial_node, previous_node, node_list, is_node_final(actual_expression));
+            std::list<Node> init_node_list = { sub_sm_initial_node };
+            buildSubStateMachine(sm, subexpression, init_node_list, node_list, is_node_final(actual_expression));
             i = end_position;
         }
         else if (i + 1 >= expression.length()) {
@@ -775,20 +743,24 @@ StateMachine buildStateMachine(std::string expression) {
             if (is_node_final(subexpression)) {
                 actual_node.set_as_final();
             }
-            {
-                Edge edge{previous_node, actual_node, expression[i]};
-                if (sm.contains_node(previous_node)) {
-                    sm.add_edge_to_list(previous_node, edge);
-                }
-                else {
-                    std::list<Edge> edge_list = { edge };
-                    sm.add_state(previous_node, edge_list);
-                }
+
+            Edge edge{previous_node, actual_node, expression[i]};
+            if (sm.contains_node(previous_node)) {
+                sm.add_edge_to_list(previous_node, edge);
             }
+            else {
+                std::list<Edge> edge_list = { edge };
+                sm.add_state(previous_node, edge_list);
+            }
+
             for (Node node : node_list) {
                 Edge edge{node, actual_node, expression[i]};
-                sm.add_edge_to_list(actual_node, edge);
+                sm.print_statemachine();
+                //std::cout << "Contains? " << node.id << " " << sm.contains_node(node) << std::endl;
+                //sm.add_edge_to_list(actual_node, edge);
+                sm.add_edge_to_list(node, edge);
             }
+            //sm.print_statemachine();
             previous_node = actual_node;
             node_list.clear();
         }
@@ -832,18 +804,6 @@ void isfinaltest() {
     std::cout << "Is final? a(b*c)* " << is_node_final("a(b*c)*") << std::endl;
     std::cout << "Is final? (b*c)*a " << is_node_final("(b*c)*a") << std::endl;
     std::cout << "Is final? a(b*c)*a " << is_node_final("a(b*c)*a") << std::endl;
-}
-
-void backedgeneededtest() {
-    std::cout << "Is final? empty " << back_edge_needed("") << std::endl;
-    std::cout << "Is final? a " << back_edge_needed("a") << std::endl;
-    std::cout << "Is final? a* " << back_edge_needed("a*") << std::endl;
-    std::cout << "Is final? ab " << back_edge_needed("ab") << std::endl;
-    std::cout << "Is final? ab* " << back_edge_needed("ab*") << std::endl;
-    std::cout << "Is final? (b*c)* " << back_edge_needed("(b*c)*") << std::endl;
-    std::cout << "Is final? a(b*c)* " << back_edge_needed("a(b*c)*") << std::endl;
-    std::cout << "Is final? (b*c)*a " << back_edge_needed("(b*c)*a") << std::endl;
-    std::cout << "Is final? a(b*c)*a " << back_edge_needed("a(b*c)*a") << std::endl;
 }
 
 void test_inner_expression() {
@@ -937,7 +897,7 @@ void test_simple_inner_expression() {
         sm.print_statemachine();
         std::cout << "-------------------------------------" << std::endl;
     }
-        {
+    {
         std::string ex = "(ab)*(cd)*(ef)*(gh)*";
         StateMachine sm = buildStateMachine(ex);
         std::cout << "State machine: " << ex << std::endl;
@@ -1230,9 +1190,9 @@ int main()
     isfinaltest();
     backedgeneededtest();
     */
-    //test_inner_expression();
+    test_inner_expression();
     test_simple_inner_expression();
-    //test_no_inner();
+    test_no_inner();
     //test2();
 
     //std::cout << get_end_of_scope("aa(bc(bd))", 5) << std::endl;

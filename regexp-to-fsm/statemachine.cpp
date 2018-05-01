@@ -83,12 +83,28 @@ Node StateMachine::get_initial() const {
 }
 
 void StateMachine::add_edge_to_list(Node node, Edge edge) {
+    /*
+    auto search = states.find(node);
+    std::list<Edge> edge_list;
+    if (search != states.end()) {
+        for (auto edge : search->second) {
+            edge_list.push_back(edge);
+        }
+        states.erase(search);
+    }
+    edge_list.push_back(edge);
+    add_state(node, edge_list);
+    */
+
     //std::cout << " map size: " << states.size() << std::endl;
     std::list<Edge> edge_list = states[node];
     //std::cout << "is list empty? " << edge_list.empty() << " nodeid: " << node.id << std::endl;
     edge_list.push_back(edge);
+    //std::cout << " node: " << node.id << std::endl;
+
     states[node] = edge_list;
     //std::cout << " map size: " << states.size() << std::endl;
+
 }
 
 bool StateMachine::check(std::string expression) const {
