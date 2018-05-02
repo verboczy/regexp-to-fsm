@@ -7,14 +7,6 @@ public:
     Node();
     Node(bool initial, bool fin);
 
-    Node(Node const& other);
-    Node& operator=(Node const& rhs);
-
-    Node(Node && other) noexcept;
-    Node& operator=(Node && rhs) noexcept;
-
-    ~Node();
-
     void set_as_final();
 
     bool get_is_init() const;

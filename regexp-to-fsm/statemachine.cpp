@@ -6,32 +6,6 @@
 
 char epsilon = '@';
 
-StateMachine::StateMachine() { }
-
-StateMachine::StateMachine(StateMachine const& other) {
-    states = other.states;
-}
-
-StateMachine& StateMachine::operator=(StateMachine const& rhs) {
-    if (this != &rhs) {
-        states = rhs.states;
-    }
-    return *this;
-}
-
-StateMachine::StateMachine(StateMachine && other) noexcept {
-    states = std::move_if_noexcept(other.states);
-}
-
-StateMachine& StateMachine::operator=(StateMachine && rhs) noexcept {
-    if (this != &rhs) {
-        states = std::move_if_noexcept(rhs.states);
-    }
-    return *this;
-}
-
-StateMachine::~StateMachine() { }
-
 /// Add state to state machine, meaning a node and edges going out from the node
 void StateMachine::add_state(Node node, std::list<Edge> edges) {
     states.insert( {node, edges} );
@@ -104,9 +78,6 @@ bool StateMachine::contains_node(Node node) {
 
 /******************************STATEMACHINEBUILDER******************************/
 
-StateMachineBuilder::StateMachineBuilder() {
-
-}
 
 size_t StateMachineBuilder::get_end_of_scope(std::string str, size_t startposition) {
     if (str[startposition] == '|') {

@@ -16,37 +16,6 @@ Node::Node(bool initial, bool fin): is_init{initial}, is_final{fin} {
     id = max_id;
 }
 
-Node::Node(Node const& other) {
-    this->is_init = other.is_init;
-    this->is_final = other.is_final;
-    this->id = other.id;
-}
-Node& Node::operator=(Node const& rhs) {
-    if (this != &rhs) {
-        this->is_init = rhs.is_init;
-        this->is_final = rhs.is_final;
-        this->id = rhs.id;
-    }
-    return *this;
-}
-
-Node::Node(Node && other) noexcept {
-    this->is_init = other.is_init;
-    this->is_final = other.is_final;
-    this->id = other.id;
-}
-
-Node& Node::operator=(Node && rhs) noexcept {
-    if (this != &rhs) {
-        this->is_init = rhs.is_init;
-        this->is_final = rhs.is_final;
-        this->id = rhs.id;
-    }
-    return *this;
-}
-
-Node::~Node() { }
-
 void Node::set_as_final() {
     is_final = true;
 }

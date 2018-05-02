@@ -10,14 +10,6 @@ public:
     Edge();
     Edge(Node begin, Node end, char char_);
 
-    Edge(Edge const& other);
-    Edge& operator=(Edge const& rhs);
-
-    Edge(Edge && other) noexcept;
-    Edge& operator=(Edge && rhs) noexcept;
-
-    ~Edge();
-
     Node get_end_node() const;
     char get_label_char() const;
 

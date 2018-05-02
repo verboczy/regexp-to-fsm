@@ -10,17 +10,6 @@ extern char epsilon;
 
 class StateMachine {
 public:
-
-    StateMachine();
-
-    StateMachine(StateMachine const& other);
-    StateMachine& operator=(StateMachine const& rhs);
-
-    StateMachine(StateMachine && other) noexcept;
-    StateMachine& operator=(StateMachine && rhs) noexcept;
-
-    ~StateMachine();
-
     void add_state(Node node, std::list<Edge> edges);
 
     bool check(std::string expression) const;
@@ -37,7 +26,6 @@ private:
 
 class StateMachineBuilder {
 public:
-    StateMachineBuilder();
 
     void buildStateMachine(std::string expression);
 
